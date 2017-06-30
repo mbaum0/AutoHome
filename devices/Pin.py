@@ -4,26 +4,23 @@ The Pin class represents a raspberry pi GPIO pin.
 @author Michael Baumgarten
 @version 6/28/2017
 """
-from Device import Device
+from devices import Device
+import RPi.GPIO as GPIO
 
-class Pin(Device):
+
+class Pin(object):
 
     def __init__(self, name, num, on):
         self.name = name
         self.num = num
         self.on = on
-
-    def get_name(self):
-        return self.name
-
-    def get_num(self):
-        return self.num
-
-    def is_on(self):
-        return self.on
+        GPIO.setup(num, GPIO.OUT)
 
     def turn_off(self):
+
         self.on = False
+        GPIO.output(self.num, GPIO.LOW)
 
     def turn_on(self):
         self.on = True
+        GPIO.output(self.num, GPIO.HIGH)

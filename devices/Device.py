@@ -7,15 +7,15 @@ implement the methods described below
 @version 6/28/17
 """
 
-class Device:
-    def get_name(self):
-        raise NotImplementedError
+from abc import ABC, abstractmethod
 
-    def is_on(self):
-        raise NotImplementedError
 
+class Device(ABC):
+
+    @abstractmethod
     def turn_on(self):
         raise NotImplementedError
 
+    @abstractmethod
     def turn_off(self):
         raise NotImplementedError
