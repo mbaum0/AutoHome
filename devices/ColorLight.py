@@ -14,7 +14,7 @@ HUE_REST_URL = "http://192.168.0.2/api/Qryu0vLk1-aRsaDfnXY8puTr1yiN4TylHMlB7Qql/
 
 class ColorLight(object):
 
-    def __init__(self, name, num, x, y, brightness, on, saturation):
+    def __init__(self, name, num, x, y, brightness, on, saturation, group):
         self.name = name
         self.num = num
         self.x = x
@@ -22,6 +22,7 @@ class ColorLight(object):
         self.brightness = brightness
         self.on = on
         self.saturation = saturation
+        self.group = group
 
     def turn_off(self):
         self.on = False
