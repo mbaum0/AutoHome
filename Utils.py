@@ -7,11 +7,18 @@ and configuration.
 
 """
 import RPi.GPIO as GPIO
-import sqlite3
-import json
 import math
 from devices.Pin import Pin
 from devices.ColorLight import ColorLight
+import sqlite3
+from sqlite3 import OperationalError
+import logging
+
+# configurations
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 def gpio_init():
@@ -20,6 +27,28 @@ def gpio_init():
     """
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
+
+
+def db_init():
+    """
+    run database initialization script
+    """
+    connection = sqlite3.connect("autohome.db")
+    cursor = connection.cursor()
+    update_script = open('database_init.sql', 'r')
+    sql_file = update_script.read()
+    update_script.close()
+
+    sql_commands = sql_file.split(";")
+
+    for command in sql_commands:
+        try:
+            cursor.execute(command)
+            logger.info("SQL EXECUTE: " + command)
+        except OperationalError as e:
+            logger.error("ERROR EXECUTING SQL COMMAND: %s" % e)
+
+    connection.commit()
 
 
 def get_pin_db_devices():
@@ -39,11 +68,9 @@ def get_pin_db_devices():
     pin_objs = []
 
     for dev in pin_devs:
-        pin_objs.append(Pin(dev[1], dev[0], dev[2]))
-
+        pin_objs.append(Pin(dev[1], dev[0], dev[2], dev[3]))
 
     return pin_objs
-
 
 
 def get_hue_color_db_devices():
@@ -63,7 +90,7 @@ def get_hue_color_db_devices():
     light_objs = []
 
     for dev in hue_color_devs:
-        light_objs.append(ColorLight(dev[1], dev[0], dev[4], dev[5], dev[3], dev[2], dev[6]))
+        light_objs.append(ColorLight(dev[1], dev[0], dev[4], dev[5], dev[3], dev[2], dev[6], dev[7]))
 
     return light_objs
 

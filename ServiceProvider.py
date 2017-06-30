@@ -9,8 +9,9 @@ from flask import Flask
 from flask import abort
 from flask import request
 import json
-from Utils import get_hue_color_db_devices, get_pin_db_devices, gpio_init
+from Utils import get_hue_color_db_devices, get_pin_db_devices, gpio_init, db_init
 import logging
+
 
 # configurations
 logging.basicConfig(level=logging.DEBUG)
@@ -52,9 +53,10 @@ def home():
     return HOME_MESSAGE
 
 
+# GPIO DEVICES
+
 @app.route('/pin/<int:num>', methods=['PUT'])
 def pin_set(num):
-
     logger.debug("GOT REQUEST FOR GPIO PIN %d" % num)
     global PIN_DEVICES
 
@@ -67,7 +69,7 @@ def pin_set(num):
     if 'on' in request.json and type(request.json['on']) is not int:
         abort(404)
 
-    data = request.get_json()[0]
+    data = request.get_json()
     status = data['on']
     if status == 0:
         pins[0].turn_off()
@@ -77,9 +79,36 @@ def pin_set(num):
     return json.dumps(pins[0].__dict__)
 
 
+@app.route('/pin/group/<string:group>', methods=['PUT'])
+def pin_group_set(group):
+    logger.debug("GOT REQUEST FOR GPIO PIN GROUP %s" % group)
+    global PIN_DEVICES
+
+    pins = [pin for pin in PIN_DEVICES if pin.group == group]
+
+    if len(pins) == 0:
+        abort(404)
+    if not request.json:
+        abort(404)
+    if 'on' in request.json and type(request.json['on']) is not int:
+        abort(404)
+
+    data = request.get_json()
+    if 'on' in request.json:
+        if data['on'] == 0:
+            for pin in pins:
+                pin.turn_off()
+
+        if data['on'] == 1:
+            for pin in pins:
+                pin.turn_on()
+
+    return json.dumps([pin.__dict__ for pin in pins])
+
+
+# HUE COLOR DEVICES
 @app.route('/hue/<int:num>', methods=['PUT'])
 def hue_color_set(num):
-
     logger.debug("GOT REQUEST FOR HUE COLOR LIGHT %d" % num)
     global HUE_COLOR_DEVICES
 
@@ -119,6 +148,53 @@ def hue_color_set(num):
 
     return json.dumps(lights[0].__dict__)
 
+
+@app.route('/hue/group/<string:group>', methods=['PUT'])
+def hue_color_group_set(group):
+    logger.debug("GOT REQUEST FOR HUE COLOR LIGHT GROUP %s " % group)
+    global HUE_COLOR_DEVICES
+
+    lights = [light for light in HUE_COLOR_DEVICES if light.group == group]
+
+    if len(lights) == 0:
+        abort(404)
+    if not request.json:
+        abort(404)
+    if 'on' in request.json and type(request.json['on']) is not int:
+        abort(404)
+    if 'bri' in request.json and type(request.json['bri']) is not int:
+        abort(404)
+    if 'x' in request.json and type(request.json['x']) is not float:
+        abort(404)
+    if 'y' in request.json and type(request.json['y']) is not float:
+        abort(404)
+    if 'sat' in request.json and type(request.json['sat']) is not int:
+        abort(404)
+
+    data = request.get_json()
+    if 'on' in request.json:
+        if data['on'] == 1:
+            for light in lights:
+                light.turn_on()
+        else:
+            for light in lights:
+                light.turn_off()
+    if 'bri' in request.json:
+        bright = data['bri']
+        for light in lights:
+            light.set_brightness(bright)
+    if 'xy' in request.json:
+        xy = data['xy']
+        for light in lights:
+            light.set_color(xy[0], xy[1])
+    if 'sat' in request.json:
+        sat = data['sat']
+        for light in lights:
+            light.set_saturation(sat)
+
+    return json.dumps([light.__dict__ for light in lights])
+
+
 """
 ************************* INITIALIZATION FUNCTIONS *************************
 """
@@ -126,13 +202,12 @@ def hue_color_set(num):
 
 def main():
     logger.debug("INITIALIZING")
+    db_init()
     gpio_init()
     init_devices()
     logger.debug("LAUNCHING FLASK PROCESS")
     app.run(debug=True, host='192.168.0.23')
 
+
 if __name__ == '__main__':
     main()
-
-
-

@@ -10,10 +10,11 @@ import RPi.GPIO as GPIO
 
 class Pin(object):
 
-    def __init__(self, name, num, on):
+    def __init__(self, name, num, on, group):
         self.name = name
         self.num = num
         self.on = on
+        self.group = group
         GPIO.setup(num, GPIO.OUT)
 
     def turn_off(self):
