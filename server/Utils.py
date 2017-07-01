@@ -12,7 +12,7 @@ import sqlite3
 from sqlite3 import OperationalError
 
 import RPi.GPIO as GPIO
-from devices.ColorLight import ColorLight
+from server.devices.ColorLight import ColorLight
 
 from server.devices.Pin import Pin
 
