@@ -5,20 +5,30 @@ for accesses and manipulating devices
 @author Michael Baumgarten
 @version 6/29/17
 """
-from flask import Flask
-from flask import abort
-from flask import request
 import json
-from server.Utils import get_hue_color_db_devices, get_pin_db_devices, gpio_init, db_init
 import logging
 
+from flask import Flask
+from flask import abort
+import sys
+from flask import request
+
+from Utils import get_hue_color_db_devices, get_pin_db_devices, gpio_init, db_init
 
 # configurations
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)
+
+LOG_FILENAME = "am.log"
+formatter = logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(message)s',
+                              datefmt='%Y-%m-%d %H:%M:%S')
+handler = logging.FileHandler(LOG_FILENAME, mode='w')
+handler.setFormatter(formatter)
+screen_handler = logging.StreamHandler(stream=sys.stdout)
+screen_handler.setFormatter(formatter)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(handler)
+logger.addHandler(screen_handler)
 
 # global vars
 HOME_MESSAGE = "It works!"
@@ -207,6 +217,7 @@ def main():
     init_devices()
     logger.debug("LAUNCHING FLASK PROCESS")
     app.run(debug=True, host='192.168.0.23')
+    logger.debug("SERVER RUNNING")
 
 
 if __name__ == '__main__':
