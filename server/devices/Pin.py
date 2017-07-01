@@ -4,7 +4,6 @@ The Pin class represents a raspberry pi GPIO pin.
 @author Michael Baumgarten
 @version 6/28/2017
 """
-from devices import Device
 import RPi.GPIO as GPIO
 
 

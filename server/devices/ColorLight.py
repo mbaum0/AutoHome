@@ -6,7 +6,6 @@ color bulb.
 @version 6/28/2017
 
 """
-from devices.Device import Device
 import requests
 
 HUE_REST_URL = "http://192.168.0.2/api/Qryu0vLk1-aRsaDfnXY8puTr1yiN4TylHMlB7Qql/lights/%d/state"

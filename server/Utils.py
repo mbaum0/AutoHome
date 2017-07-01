@@ -6,13 +6,15 @@ and configuration.
 @version 6/29/17
 
 """
-import RPi.GPIO as GPIO
+import logging
 import math
-from devices.Pin import Pin
-from devices.ColorLight import ColorLight
 import sqlite3
 from sqlite3 import OperationalError
-import logging
+
+import RPi.GPIO as GPIO
+from devices.ColorLight import ColorLight
+
+from server.devices.Pin import Pin
 
 # configurations
 logging.basicConfig(level=logging.DEBUG)
