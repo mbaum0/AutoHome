@@ -11,14 +11,12 @@ import math
 import sqlite3
 from sqlite3 import OperationalError
 
-import RPi.GPIO as GPIO
-from devices.ColorLight import ColorLight
+# import RPi.GPIO as GPIO
+from server.devices.ColorLight import ColorLight
 
 from server.devices.Pin import Pin
 
 # configurations
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -27,8 +25,8 @@ def gpio_init():
     """
     initializes the gpio header on a raspberry pi
     """
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(False)
+    # GPIO.setmode(GPIO.BCM)
+    # GPIO.setwarnings(False)
 
 
 def db_init():
@@ -37,7 +35,7 @@ def db_init():
     """
     connection = sqlite3.connect("autohome.db")
     cursor = connection.cursor()
-    update_script = open('database_init.sql', 'r')
+    update_script = open('server/database_init.sql', 'r')
     sql_file = update_script.read()
     update_script.close()
 

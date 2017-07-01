@@ -9,7 +9,7 @@ from flask import Flask
 from flask import abort
 from flask import request
 import json
-from Utils import get_hue_color_db_devices, get_pin_db_devices, gpio_init, db_init
+from server.Utils import get_hue_color_db_devices, get_pin_db_devices, gpio_init, db_init
 import logging
 
 
@@ -79,6 +79,13 @@ def pin_set(num):
     return json.dumps(pins[0].__dict__)
 
 
+@app.route('/pin', methods=['GET'])
+def pin_get():
+    logger.debug("GOT REQUEST FOR GPIO PINS")
+    global PIN_DEVICES
+    return json.dumps([pin.__dict__ for pin in PIN_DEVICES])
+
+
 @app.route('/pin/group/<string:group>', methods=['PUT'])
 def pin_group_set(group):
     logger.debug("GOT REQUEST FOR GPIO PIN GROUP %s" % group)
@@ -104,6 +111,18 @@ def pin_group_set(group):
                 pin.turn_on()
 
     return json.dumps([pin.__dict__ for pin in pins])
+
+
+@app.route('/pin/group', methods=['GET'])
+def pin_group_get():
+    logger.debug("GOT REQUEST FOR GPIO PIN GROUPS")
+    global PIN_DEVICES
+
+    iterable = {}
+    for pin in PIN_DEVICES:
+        iterable.setdefault(pin.group, []).append(pin.__dict__)
+
+    return json.dumps(iterable)
 
 
 # HUE COLOR DEVICES
@@ -147,6 +166,13 @@ def hue_color_set(num):
         lights[0].set_saturation(sat)
 
     return json.dumps(lights[0].__dict__)
+
+
+@app.route('/hue', methods=['GET'])
+def hue_color_get():
+    logger.debug("GOT REQUEST FOR HUE COLOR LIGHTS")
+    global HUE_COLOR_DEVICES
+    return json.dumps([light.__dict__ for light in HUE_COLOR_DEVICES])
 
 
 @app.route('/hue/group/<string:group>', methods=['PUT'])
@@ -195,6 +221,18 @@ def hue_color_group_set(group):
     return json.dumps([light.__dict__ for light in lights])
 
 
+@app.route('/hue/group', methods=['GET'])
+def hue_color_group_get():
+    logger.debug("GOT REQUEST FOR HUE COLOR LIGHT GROUPS")
+    global HUE_COLOR_DEVICES
+
+    iterable = {}
+    for light in HUE_COLOR_DEVICES:
+        iterable.setdefault(light.group, []).append(light.__dict__)
+
+    return json.dumps(iterable)
+
+
 """
 ************************* INITIALIZATION FUNCTIONS *************************
 """
@@ -206,7 +244,7 @@ def main():
     gpio_init()
     init_devices()
     logger.debug("LAUNCHING FLASK PROCESS")
-    app.run(debug=True, host='192.168.0.23')
+    app.run(debug=True, host='192.168.0.55')
 
 
 if __name__ == '__main__':
