@@ -140,31 +140,31 @@ def view_dashboard():
         command = input(":  ")
         print("\r")
         command_args = command.split()
-        if len(command_args) != 4:
-            print("error parsing command. please check syntax")
-        else:
-            dev_type = command_args[0]
-            dev_id = command_args[1]
-            dev_state = command_args[2]
-            dev_val = command_args[3]
 
-            try:
+        dev_type = command_args[0]
+        dev_state = command_args[1]
+        dev_val = str(command_args[2])
+
+        try:
+            if dev_val.find('.') == 1:
+                dev_val = float(dev_val)
+                data = """{"%s" : %f}""" % (dev_state, dev_val)
+            else:
+                dev_val = int(dev_val)
+                data = """{"%s" : %d}""" % (dev_state, dev_val)
+
+            for dev_id in command_args[3:]:
                 dev_id = int(dev_id)
-                if dev_val.find('.') == 1:
-                    dev_val = float(dev_val)
-                    data = """{"%s" : %f}""" % (dev_state, dev_val)
-                else:
-                    dev_val = int(dev_val)
-                    data = """{"%s" : %d}""" % (dev_state, dev_val)
-
                 url = "http://192.168.0.23:5000/%s/%d" % (dev_type, dev_id)
                 headers = {'content-type': 'application/json'}
                 response = requests.put(url, data=data, headers=headers)
 
                 if response.status_code == 404:
                     print("error processing command. please check syntax")
-            except ValueError:
-                print("error processing command. please check syntax")
+        except ValueError:
+            print("error processing command. please check syntax")
+
+
     sys.stdout.write("\r")
     sys.stdout.flush()
     main_menu()
