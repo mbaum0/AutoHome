@@ -78,6 +78,11 @@ def pin_set(num):
     if 'on' in request.json and type(request.json['on']) is not int:
         abort(404)
 
+    # check if all keys in json PUT are valid
+    for key in request.json:
+        if key not in pins[0].__dict__:
+            abort(404)
+
     data = request.get_json()
     status = data['on']
     if status == 0:
@@ -109,6 +114,11 @@ def pin_group_set(group):
         abort(404)
     if 'on' in request.json and type(request.json['on']) is not int:
         abort(404)
+
+    # check if all keys in json PUT are valid
+    for key in request.json:
+        if key not in pins[0].__dict__:
+            abort(404)
 
     data = request.get_json()
     if 'on' in request.json:
@@ -145,6 +155,11 @@ def hue_color_set(num):
         abort(404)
     if 'sat' in request.json and type(request.json['sat']) is not int:
         abort(404)
+
+    # check if all keys in json PUT are valid
+    for key in request.json:
+        if key not in lights[0].__dict__:
+            abort(404)
 
     data = request.get_json()
     if 'on' in request.json:
@@ -194,6 +209,11 @@ def hue_color_group_set(group):
         abort(404)
     if 'sat' in request.json and type(request.json['sat']) is not int:
         abort(404)
+
+    # check if all keys in json PUT are valid
+    for key in request.json:
+        if key not in lights[0].__dict__:
+            abort(404)
 
     data = request.get_json()
     if 'on' in request.json:
