@@ -12,7 +12,6 @@ from flask import Flask
 from flask import abort
 import sys
 from flask import request
-
 from Utils import get_hue_color_db_devices, get_pin_db_devices, gpio_init, db_init
 
 # configurations
