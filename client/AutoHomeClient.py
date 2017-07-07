@@ -9,6 +9,7 @@ the server to get and change device statuses
 import requests
 import os
 import time
+import json
 import sys
 from platform import system as system_name
 
@@ -63,15 +64,16 @@ def get_hue_color_devices():
 
 
 def main_menu():
+    clear_screen()
     print_logo()
-    slow_type_string("Welcome! Please select an option below to get started")
+    # slow_type_string("Welcome! Please select an option below to get started")
     print("(1) view installed devices")
     print("(2) view dashboard")
     print("(3) view AutoHome information")
     selection = get_input_from_user("selection: ", 1, 3)
-    options = {1 : view_devices,
-               2 : view_dashboard,
-               3 : view_info}
+    options = {1: view_devices,
+               2: view_dashboard,
+               3: view_info}
 
     options[selection]()
 
@@ -89,7 +91,7 @@ def view_devices():
         print("------------------------")
         print("name: " + light['name'])
         print("id: " + str(light['num']))
-        print("xy: [" + str(light['x'])+","+str(light['y'])+"]")
+        print("xy: [" + str(light['x']) + "," + str(light['y']) + "]")
         print("bri: " + str(light['brightness']))
         print("on: " + str(light['on']))
         print("group: " + light['group'])
@@ -109,7 +111,63 @@ def view_devices():
 
 
 def view_dashboard():
-    pass
+    clear_screen()
+    print("-------------------------------------------------devices------------------------------------------------")
+    hue_lights = get_hue_color_devices()
+    gpio_pins = get_pin_devices()
+    for hue in hue_lights:
+        print("(hue) | ", end="")
+        print("name: %s | " % hue['name'], end="")
+        print("on: %d | " % hue['on'], end="")
+        print("id: %d | " % hue['num'], end="")
+        print("bri : %d | " % hue['brightness'], end="")
+        print("sat : %d | " % hue['saturation'], end="")
+        print("group: %s | " % hue['group'], end="")
+        print("xy : [%f,%f]" % (hue['x'], hue['y']))
+
+    print()
+    for pin in gpio_pins:
+        print("(pin) | ", end="")
+        print("name: %s | " % pin['name'], end="")
+        print("on: %d | " % pin['on'], end="")
+        print("id: %d | " % pin['num'], end="")
+        print("group: %s " % hue['group'])
+
+    print()
+    print("---------------------------------------------enter command---------------------------------------------")
+    command = ""
+    while command != "exit":
+        command = input(":  ")
+        print("\r")
+        command_args = command.split()
+        if len(command_args) != 4:
+            print("error parsing command. please check syntax")
+        else:
+            dev_type = command_args[0]
+            dev_id = command_args[1]
+            dev_state = command_args[2]
+            dev_val = command_args[3]
+
+            try:
+                dev_id = int(dev_id)
+                if dev_val.find('.') == 1:
+                    dev_val = float(dev_val)
+                    data = """{"%s" : %f}""" % (dev_state, dev_val)
+                else:
+                    dev_val = int(dev_val)
+                    data = """{"%s" : %d}""" % (dev_state, dev_val)
+
+                url = "http://192.168.0.23:5000/%s/%d" % (dev_type, dev_id)
+                headers = {'content-type': 'application/json'}
+                response = requests.put(url, data=data, headers=headers)
+
+                if response.status_code == 404:
+                    print("error processing command. please check syntax")
+            except ValueError:
+                print("error processing command. please check syntax")
+    sys.stdout.write("\r")
+    sys.stdout.flush()
+    main_menu()
 
 
 def view_info():
@@ -118,10 +176,3 @@ def view_info():
 
 main_menu()
 # TODO INCOMPLETE
-
-
-
-
-
-
-
