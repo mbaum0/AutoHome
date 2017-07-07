@@ -1,4 +1,4 @@
 *.idea
 __pycache__/
-server/devices/__pycache__/
+devices/__pycache__/
 songs/

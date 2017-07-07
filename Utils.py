@@ -14,7 +14,7 @@ from sqlite3 import OperationalError
 # import RPi.GPIO as GPIO
 from server.devices.ColorLight import ColorLight
 
-from server.devices.Pin import Pin
+from devices.Pin import Pin
 
 # configurations
 logging.basicConfig(level=logging.DEBUG)
