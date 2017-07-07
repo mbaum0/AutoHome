@@ -82,15 +82,30 @@ def view_devices():
 
     clear_screen()
     print_logo()
+    print()
+    print("------------------------")
     print("Hue Color Lights:")
-    print("_________________")
     for light in hue_color_lights:
-        print("name: " + light.name)
-        print("id: " + light.num)
-        print("xy: [" + light.x+","+light.y+"]")
-        print("bri: " + light.brightness)
-        print("on: " + light.on)
-        print("group: " + light.group)
+        print("------------------------")
+        print("name: " + light['name'])
+        print("id: " + str(light['num']))
+        print("xy: [" + str(light['x'])+","+str(light['y'])+"]")
+        print("bri: " + str(light['brightness']))
+        print("on: " + str(light['on']))
+        print("group: " + light['group'])
+
+    print()
+    print("------------------------")
+    print("GPIO Pin Devices:")
+    for pin in gpio_pins:
+        print("------------------------")
+        print("name: " + pin['name'])
+        print("id: " + str(pin['num']))
+        print("on: " + str(pin['on']))
+        print("group: " + pin['group'])
+
+    input("press any key to return")
+    main_menu()
 
 
 def view_dashboard():

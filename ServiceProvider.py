@@ -88,6 +88,14 @@ def pin_set(num):
     return json.dumps(pins[0].__dict__)
 
 
+@app.route('/pin', methods=['GET'])
+def pin_get():
+    logger.debug("GET REQUEST FOR GPIO PIN DEVICES")
+    global PIN_DEVICES
+
+    return json.dumps([pin.__dict__ for pin in PIN_DEVICES])
+
+
 @app.route('/pin/group/<string:group>', methods=['PUT'])
 def pin_group_set(group):
     logger.debug("GOT REQUEST FOR GPIO PIN GROUP %s" % group)
@@ -156,6 +164,13 @@ def hue_color_set(num):
         lights[0].set_saturation(sat)
 
     return json.dumps(lights[0].__dict__)
+
+
+@app.route('/hue', methods=['GET'])
+def hue_get():
+    logger.debug("GET REQUEST FOR HUE COLOR LIGHTS")
+    global HUE_COLOR_DEVICES
+    return json.dumps([light.__dict__ for light in HUE_COLOR_DEVICES])
 
 
 @app.route('/hue/group/<string:group>', methods=['PUT'])
