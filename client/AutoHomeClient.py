@@ -54,12 +54,12 @@ def get_input_from_user(string, low_range, high_range):
 
 
 def get_pin_devices():
-    response = requests.get("http://192.168.0.23:5000/pin")
+    response = requests.get("http://192.168.0.75:5000/pin")
     return response.json()
 
 
 def get_hue_color_devices():
-    response = requests.get("http://192.168.0.23:5000/hue")
+    response = requests.get("http://192.168.0.75:5000/hue")
     return response.json()
 
 
@@ -141,37 +141,76 @@ def view_dashboard():
         print("\r")
         command_args = command.split()
 
-        dev_type = command_args[0]
-        dev_state = command_args[1]
-        dev_val = str(command_args[2])
-
-        try:
-            if dev_val.find('.') == 1:
-                dev_val = float(dev_val)
-                data = """{"%s" : %f}""" % (dev_state, dev_val)
-            else:
-                dev_val = int(dev_val)
-                data = """{"%s" : %d}""" % (dev_state, dev_val)
-
-            for dev_id in command_args[3:]:
-                dev_id = int(dev_id)
-                url = "http://192.168.0.23:5000/%s/%d" % (dev_type, dev_id)
-                headers = {'content-type': 'application/json'}
-                response = requests.put(url, data=data, headers=headers)
-
-                if response.status_code == 404:
-                    print("error processing command. please check syntax")
-        except ValueError:
+        if len(command_args) < 3:
             print("error processing command. please check syntax")
+        else:
 
+            dev_type = command_args[0]
+            dev_state = fix_dev_state_input(command_args[1])
+            dev_val = str(command_args[2])
 
-    sys.stdout.write("\r")
-    sys.stdout.flush()
+            try:
+                data = ''
+                if is_float(dev_val):
+                    dev_val = float(dev_val)
+                    data = """{"%s" : %f}""" % (dev_state, dev_val)
+                elif is_int(dev_val):
+                    dev_val = int(dev_val)
+                    data = """{"%s" : %d}""" % (dev_state, dev_val)
+                elif isinstance(dev_val, str):
+                    data = """{"%s" : "%s"}""" % (dev_state, dev_val)
+
+                for dev_id in command_args[3:]:
+                    dev_id = int(dev_id)
+                    url = "http://192.168.0.75:5000/%s/%d" % (dev_type, int(dev_id))
+                    headers = {'content-type': 'application/json'}
+                    response = requests.put(url, data=data, headers=headers)
+
+                    if response.status_code == 404:
+                        print("error processing command. please check syntax")
+            except ValueError:
+                print("error processing command. please check syntax")
+
+        sys.stdout.write("\r")
+        sys.stdout.flush()
     main_menu()
 
 
 def view_info():
     pass
+
+
+def fix_dev_state_input(state):
+    """
+    allows users to use shorter notations for commands
+    :param state: user shorthand input
+    :return: corrected input
+    """
+    if state == 'sat':
+        return 'saturation'
+    if state == 'bri':
+        return 'brightness'
+    return state
+
+
+def is_int(val):
+    try:
+        int(val)
+        return True
+    except ValueError:
+        return False
+
+
+def is_float(val):
+
+    if '.' in val:
+        try:
+            float(val)
+            return True
+        except ValueError:
+            return False
+    return False
+
 
 
 main_menu()

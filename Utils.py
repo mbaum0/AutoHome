@@ -10,8 +10,9 @@ import logging
 import math
 import sqlite3
 from sqlite3 import OperationalError
+import csv
 
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 from devices.ColorLight import ColorLight
 
 from devices.Pin import Pin
@@ -25,8 +26,8 @@ def gpio_init():
     """
     initializes the gpio header on a raspberry pi
     """
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(False)
+    # GPIO.setmode(GPIO.BCM)
+    # GPIO.setwarnings(False)
 
 
 def db_init():
@@ -135,3 +136,27 @@ def convert_rgb_to_xy(red, green, blue):
         fy = 0.0
 
     return round(fx, 4), round(fy, 4)
+
+
+def hue_color_lookup(color):
+    """
+    converts color string input xy color tuple
+    :param color: color to convert
+    :return: (x,y) tuple color value
+    """
+    color_dict = {}
+    with open('color_lookup.csv', mode='r') as color_file:
+        reader = csv.reader(color_file)
+
+        rows = [row for row in reader if row]
+
+        for row in rows[1:]:
+            color_dict.update({row[0]: [float(row[1]), float(row[2])]})
+
+    if color in color_dict.keys():
+        return color_dict[color]
+    else:
+        return None
+
+
+

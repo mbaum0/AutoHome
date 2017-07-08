@@ -12,7 +12,7 @@ from flask import Flask
 from flask import abort
 import sys
 from flask import request
-from Utils import get_hue_color_db_devices, get_pin_db_devices, gpio_init, db_init
+from Utils import *
 
 # configurations
 app = Flask(__name__)
@@ -33,6 +33,7 @@ logger.addHandler(screen_handler)
 HOME_MESSAGE = "It works!"
 PIN_DEVICES = []
 HUE_COLOR_DEVICES = []
+HUE_VALID_COMMANDS = ['on', 'saturation', 'brightness', 'color', 'x', 'y']
 
 """
 ************************* INITIALIZATION *************************
@@ -138,6 +139,7 @@ def pin_group_set(group):
 def hue_color_set(num):
     logger.debug("GOT REQUEST FOR HUE COLOR LIGHT %d" % num)
     global HUE_COLOR_DEVICES
+    global HUE_VALID_COMMANDS
 
     lights = [light for light in HUE_COLOR_DEVICES if light.num == num]
 
@@ -147,18 +149,20 @@ def hue_color_set(num):
         abort(404)
     if 'on' in request.json and type(request.json['on']) is not int:
         abort(404)
-    if 'bri' in request.json and type(request.json['bri']) is not int:
+    if 'brightness' in request.json and type(request.json['brightness']) is not int:
         abort(404)
     if 'x' in request.json and type(request.json['x']) is not float:
         abort(404)
     if 'y' in request.json and type(request.json['y']) is not float:
         abort(404)
-    if 'sat' in request.json and type(request.json['sat']) is not int:
+    if 'saturation' in request.json and type(request.json['saturation']) is not int:
+        abort(404)
+    if 'color' in request.json and type(request.json['color']) is not str:
         abort(404)
 
     # check if all keys in json PUT are valid
     for key in request.json:
-        if key not in lights[0].__dict__:
+        if key not in HUE_VALID_COMMANDS:
             abort(404)
 
     data = request.get_json()
@@ -168,15 +172,28 @@ def hue_color_set(num):
         else:
             lights[0].turn_off()
 
-    if 'bri' in request.json:
-        bright = data['bri']
+    if 'brightness' in request.json:
+        bright = data['brightness']
         lights[0].set_brightness(bright)
-    if 'xy' in request.json:
-        xy = data['xy']
-        lights[0].set_color(xy[0], xy[1])
-    if 'sat' in request.json:
-        sat = data['sat']
+    if 'x' in request.json:
+        x = data['x']
+        y = lights[0].y
+        lights[0].set_color(x, y)
+    if 'y' in request.json:
+        y = data['y']
+        x = lights[0].x
+        lights[0].set_color(x, y)
+    if 'saturation' in request.json:
+        sat = data['saturation']
         lights[0].set_saturation(sat)
+
+    if 'color' in request.json:
+        color = data['color']
+        color_dict = hue_color_lookup(color)
+        if color_dict is None:
+            return abort(404)
+        x, y = color_dict
+        lights[0].set_color(x, y)
 
     return json.dumps(lights[0].__dict__)
 
@@ -250,8 +267,9 @@ def main():
     gpio_init()
     init_devices()
     logger.debug("LAUNCHING FLASK PROCESS")
-    app.run(debug=True, host='192.168.0.23')
+    app.run(debug=True, host='192.168.0.75')
     logger.debug("SERVER RUNNING")
+    app.debug = True
 
 
 if __name__ == '__main__':
