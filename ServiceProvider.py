@@ -13,6 +13,7 @@ from flask import abort
 import sys
 from flask import request
 from Utils import *
+import os
 
 # configurations
 app = Flask(__name__)
@@ -34,6 +35,7 @@ HOME_MESSAGE = "It works!"
 PIN_DEVICES = []
 HUE_COLOR_DEVICES = []
 HUE_VALID_COMMANDS = ['on', 'saturation', 'brightness', 'color', 'x', 'y']
+HOST_URL = "192.168.0.23"
 
 """
 ************************* INITIALIZATION *************************
@@ -267,7 +269,7 @@ def main():
     gpio_init()
     init_devices()
     logger.debug("LAUNCHING FLASK PROCESS")
-    app.run(debug=True, host='192.168.0.75')
+    app.run(debug=True, host=HOST_URL)
     logger.debug("SERVER RUNNING")
     app.debug = True
 

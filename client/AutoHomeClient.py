@@ -13,12 +13,16 @@ import json
 import sys
 from platform import system as system_name
 
+SERVER_URL = "http://192.168.0.23:5000"
 
-def slow_type_string(str):
-    for letter in str:
+COMMANDS = ["colors"]
+
+
+def slow_type_string(msg):
+    for letter in msg:
         sys.stdout.write(letter)
         sys.stdout.flush()
-        time.sleep(.05)
+        time.sleep(.025)
     print()
 
 
@@ -54,25 +58,25 @@ def get_input_from_user(string, low_range, high_range):
 
 
 def get_pin_devices():
-    response = requests.get("http://192.168.0.75:5000/pin")
+    response = requests.get(SERVER_URL+"/pin")
     return response.json()
 
 
 def get_hue_color_devices():
-    response = requests.get("http://192.168.0.75:5000/hue")
+    response = requests.get(SERVER_URL+"/hue")
     return response.json()
 
 
 def main_menu():
     clear_screen()
     print_logo()
-    # slow_type_string("Welcome! Please select an option below to get started")
+    slow_type_string("Welcome! Please select an option below.")
     print("(1) view installed devices")
-    print("(2) view dashboard")
+    print("(2) adjust devices")
     print("(3) view AutoHome information")
     selection = get_input_from_user("selection: ", 1, 3)
     options = {1: view_devices,
-               2: view_dashboard,
+               2: view_commands,
                3: view_info}
 
     options[selection]()
@@ -106,70 +110,81 @@ def view_devices():
         print("on: " + str(pin['on']))
         print("group: " + pin['group'])
 
+    print()
     input("press any key to return")
     main_menu()
 
 
-def view_dashboard():
-    clear_screen()
-    print("-------------------------------------------------devices------------------------------------------------")
-    hue_lights = get_hue_color_devices()
-    gpio_pins = get_pin_devices()
-    for hue in hue_lights:
-        print("(hue) | ", end="")
-        print("name: %s | " % hue['name'], end="")
-        print("on: %d | " % hue['on'], end="")
-        print("id: %d | " % hue['num'], end="")
-        print("bri : %d | " % hue['brightness'], end="")
-        print("sat : %d | " % hue['saturation'], end="")
-        print("group: %s | " % hue['group'], end="")
-        print("xy : [%f,%f]" % (hue['x'], hue['y']))
-
-    print()
-    for pin in gpio_pins:
-        print("(pin) | ", end="")
-        print("name: %s | " % pin['name'], end="")
-        print("on: %d | " % pin['on'], end="")
-        print("id: %d | " % pin['num'], end="")
-        print("group: %s " % hue['group'])
-
-    print()
-    print("---------------------------------------------enter command---------------------------------------------")
+def view_commands():
     command = ""
+    error = False
     while command != "exit":
+        clear_screen()
+        print_logo()
+        print(' DEVICES '.center(120, '*'))
+        hue_lights = get_hue_color_devices()
+        gpio_pins = get_pin_devices()
+        for hue in hue_lights:
+            print("(hue) | ", end="")
+            print("name: %s | " % hue['name'], end="")
+            print("on: %d | " % hue['on'], end="")
+            print("id: %d | " % hue['num'], end="")
+            print("bri: %d | " % hue['brightness'], end="")
+            print("sat: %d | " % hue['saturation'], end="")
+            print("group: %s | " % hue['group'], end="")
+            print("xy: [%f,%f]" % (hue['x'], hue['y']))
+
+        print()
+        for pin in gpio_pins:
+            print("(pin) | ", end="")
+            print("name: %s | " % pin['name'], end="")
+            print("on: %d | " % pin['on'], end="")
+            print("id: %d | " % pin['num'], end="")
+            print("group: %s " % hue['group'])
+
+        print()
+        print(' ENTER COMMAND '.center(120, '*'))
+        if error:
+            print("error processing command. please check syntax")
+            error = False
         command = input(":  ")
         print("\r")
         command_args = command.split()
 
-        if len(command_args) < 3:
-            print("error processing command. please check syntax")
+        if len(command_args) < 2:
+            error = True
         else:
+            if command_args[0] == 'cmd':
+                if command_args[1] in COMMANDS:
+                    process_command(command_args[1])
+                else:
+                    error = True
+            else:
+                dev_type = command_args[0]
+                dev_state = fix_dev_state_input(command_args[1])
+                dev_val = str(command_args[2])
 
-            dev_type = command_args[0]
-            dev_state = fix_dev_state_input(command_args[1])
-            dev_val = str(command_args[2])
+                try:
+                    data = ''
+                    if is_float(dev_val):
+                        dev_val = float(dev_val)
+                        data = """{"%s" : %f}""" % (dev_state, dev_val)
+                    elif is_int(dev_val):
+                        dev_val = int(dev_val)
+                        data = """{"%s" : %d}""" % (dev_state, dev_val)
+                    elif isinstance(dev_val, str):
+                        data = """{"%s" : "%s"}""" % (dev_state, dev_val)
 
-            try:
-                data = ''
-                if is_float(dev_val):
-                    dev_val = float(dev_val)
-                    data = """{"%s" : %f}""" % (dev_state, dev_val)
-                elif is_int(dev_val):
-                    dev_val = int(dev_val)
-                    data = """{"%s" : %d}""" % (dev_state, dev_val)
-                elif isinstance(dev_val, str):
-                    data = """{"%s" : "%s"}""" % (dev_state, dev_val)
+                    for dev_id in command_args[3:]:
+                        dev_id = int(dev_id)
+                        url = SERVER_URL+"/%s/%d" % (dev_type, int(dev_id))
+                        headers = {'content-type': 'application/json'}
+                        response = requests.put(url, data=data, headers=headers)
 
-                for dev_id in command_args[3:]:
-                    dev_id = int(dev_id)
-                    url = "http://192.168.0.75:5000/%s/%d" % (dev_type, int(dev_id))
-                    headers = {'content-type': 'application/json'}
-                    response = requests.put(url, data=data, headers=headers)
-
-                    if response.status_code == 404:
-                        print("error processing command. please check syntax")
-            except ValueError:
-                print("error processing command. please check syntax")
+                        if response.status_code == 404:
+                            error = True
+                except ValueError:
+                    error = True
 
         sys.stdout.write("\r")
         sys.stdout.flush()
@@ -177,7 +192,22 @@ def view_dashboard():
 
 
 def view_info():
-    pass
+    clear_screen()
+    print_logo()
+    print()
+    print("AutoHome is a client-server based IOT service. The server is meant to be run on a small computer")
+    print("i.e a Raspberry Pi. The server manages processing requests and manipulating devices based on ")
+    print("queries. The server is set up in a RESTful manner where it handles HTTP requests with JSON data")
+    print("in order to determine which devices to look at and how to change them.")
+    print()
+    print("AutoHome is originally made to work with the rPi GPIO header and Phillips Hue bulbs. As time goes")
+    print("on I plan to add support for music playback (vlc) and creating some kind of rpi/python interface")
+    print("to allow new everyday devices to be added to AutoHome.")
+    print()
+    print("Created By Michael Baumgarten - Summer 2017")
+    print()
+    input("Press any key to go back")
+    main_menu()
 
 
 def fix_dev_state_input(state):
@@ -210,6 +240,12 @@ def is_float(val):
         except ValueError:
             return False
     return False
+
+
+def process_command(cmd):
+    if cmd == "colors":
+        print("Colors Go Here")
+
 
 
 

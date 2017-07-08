@@ -11,8 +11,9 @@ import math
 import sqlite3
 from sqlite3 import OperationalError
 import csv
+import os
 
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 from devices.ColorLight import ColorLight
 
 from devices.Pin import Pin
@@ -21,22 +22,28 @@ from devices.Pin import Pin
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+RELATIVE_DIR = os.path.dirname(__file__)
+
+DATABASE_PATH = os.path.join(RELATIVE_DIR, "autohome.db")
+DB_UPDATE_PATH = os.path.join(RELATIVE_DIR, "database_init.sql")
+COLOR_CSV = os.path.join(RELATIVE_DIR, "color_lookup.csv")
+
 
 def gpio_init():
     """
     initializes the gpio header on a raspberry pi
     """
-    # GPIO.setmode(GPIO.BCM)
-    # GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
 
 
 def db_init():
     """
     run database initialization script
     """
-    connection = sqlite3.connect("autohome.db")
+    connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
-    update_script = open('database_init.sql', 'r')
+    update_script = open(DB_UPDATE_PATH, 'r')
     sql_file = update_script.read()
     update_script.close()
 
@@ -60,7 +67,7 @@ def get_pin_db_devices():
     """
 
     pins_get_devices = "SELECT * FROM pins"
-    connection = sqlite3.connect("autohome.db")
+    connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
 
     cursor.execute(pins_get_devices)
@@ -82,7 +89,7 @@ def get_hue_color_db_devices():
     """
 
     hue_colors_get_devices = "SELECT * FROM hue_colors"
-    connection = sqlite3.connect("autohome.db")
+    connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
 
     cursor.execute(hue_colors_get_devices)
@@ -145,7 +152,7 @@ def hue_color_lookup(color):
     :return: (x,y) tuple color value
     """
     color_dict = {}
-    with open('color_lookup.csv', mode='r') as color_file:
+    with open(os.path.join(RELATIVE_DIR, COLOR_CSV), mode='r') as color_file:
         reader = csv.reader(color_file)
 
         rows = [row for row in reader if row]
@@ -157,6 +164,24 @@ def hue_color_lookup(color):
         return color_dict[color]
     else:
         return None
+
+
+def get_hue_colors():
+    """
+    retrieves a list of the hue colors set up in the csv
+    :return: list of hue colors
+    """
+    color_dict = {}
+    with open(os.path.join(RELATIVE_DIR, COLOR_CSV), mode='r') as color_file:
+        reader = csv.reader(color_file)
+
+        rows = [row for row in reader if row]
+
+        for row in rows[1:]:
+            color_dict.update({row[0]: [float(row[1]), float(row[2])]})
+
+    return color_dict
+
 
 
 
