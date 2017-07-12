@@ -35,7 +35,7 @@ HOME_MESSAGE = "It works!"
 PIN_DEVICES = []
 HUE_COLOR_DEVICES = []
 HUE_VALID_COMMANDS = ['on', 'saturation', 'brightness', 'color', 'x', 'y']
-HOST_URL = "192.168.0.23"
+HOST_URL = "192.168.0.75"
 
 """
 ************************* INITIALIZATION *************************
@@ -256,6 +256,15 @@ def hue_color_group_set(group):
             light.set_saturation(sat)
 
     return json.dumps([light.__dict__ for light in lights])
+
+
+@app.route('/hue/colors', methods=['GET'])
+def hue_colors_get():
+    logger.debug("GOT REQUEST FOR HUE COLORS")
+
+    hue_colors_dict = get_hue_colors()
+
+    return json.dumps(hue_colors_dict)
 
 
 """

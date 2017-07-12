@@ -13,7 +13,7 @@ import json
 import sys
 from platform import system as system_name
 
-SERVER_URL = "http://192.168.0.23:5000"
+SERVER_URL = "http://192.168.0.75:5000"
 
 COMMANDS = ["colors"]
 
@@ -143,6 +143,20 @@ def view_commands():
             print("group: %s " % hue['group'])
 
         print()
+
+        print(' COLORS '.center(120, '*'))
+
+        colors = get_colors()
+        i = 0
+        for color in colors:
+            print(color + " ", end=" ")
+            i += len(color)
+            if i >= 85:
+                print()
+                i = 0
+
+        print()
+
         print(' ENTER COMMAND '.center(120, '*'))
         if error:
             print("error processing command. please check syntax")
@@ -246,6 +260,16 @@ def process_command(cmd):
     if cmd == "colors":
         print("Colors Go Here")
 
+
+def get_colors():
+    url = SERVER_URL+"/hue/colors"
+    response = requests.get(url)
+    content = response.json()
+    color_list = []
+    for key in content:
+        color_list.append(key)
+
+    return color_list
 
 
 
