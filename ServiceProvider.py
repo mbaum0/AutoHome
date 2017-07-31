@@ -265,8 +265,8 @@ def hue_color_group_set(group):
 
 # HTTP Service Devices
 
-@app.route('/fan/<int:num>/speed/<int:speed>', methods=['PUT'])
-def fan_speed_set(num, speed):
+@app.route('/fan/<int:num>', methods=['PUT'])
+def fan_speed_set(num):
     logger.debug("GOT REQUEST FOR FAN SPEED: %d" % num)
 
     global FAN_DEVICES
@@ -275,12 +275,24 @@ def fan_speed_set(num, speed):
 
     if len(fans) == 0:
         abort(404)
+    if not request.json:
+        abort(404)
+    if 'speed' in request.json and type(request.json['speed']) is not int:
+        abort(404)
 
-    fan = fans[0]
+    data = request.get_json()
+    if 'speed' in request.json:
+            speed = data['speed']
+            fans[0].set_speed(speed)
 
-    fan.set_speed(speed)
+    return json.dumps(fans[0].__dict__)
 
-    return json.dumps(fan.__dict__)
+
+@app.route('/fan', methods=['GET'])
+def fan_get():
+    logger.debug("GET REQUEST FOR FAN DEVICES")
+    global FAN_DEVICES
+    return json.dumps([fan.__dict__ for fan in FAN_DEVICES])
 
 
 @app.route('/hue/colors', methods=['GET'])

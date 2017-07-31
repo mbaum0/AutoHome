@@ -12,7 +12,7 @@ DELETE FROM hue_colors;
 DELETE FROM pins;
 DELETE FROM fans;
 
-INSERT INTO pins("id", "name", "on", "group") VALUES (22, "michael_lamp", 0, "michael_room");
+INSERT INTO pins("id", "name", "on", "group") VALUES (27, "michael_lamp", 0, "michael_room");
 
 INSERT INTO hue_colors("id", "name", "on", "brightness", "x", "y",
 "saturation", "group") VALUES (20, "michael_main_0", 0, 0, 0, 0, 0, "michael_room");

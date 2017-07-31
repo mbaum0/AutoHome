@@ -13,7 +13,7 @@ import json
 import sys
 from platform import system as system_name
 
-SERVER_URL = "http://192.168.0.75:5000"
+SERVER_URL = "http://192.168.0.23:5000"
 
 COMMANDS = ["colors"]
 
@@ -67,6 +67,11 @@ def get_hue_color_devices():
     return response.json()
 
 
+def get_fan_devices():
+    response = requests.get(SERVER_URL+"/fan")
+    return response.json()
+
+
 def main_menu():
     clear_screen()
     print_logo()
@@ -85,6 +90,7 @@ def main_menu():
 def view_devices():
     hue_color_lights = get_hue_color_devices()
     gpio_pins = get_pin_devices()
+    fan_devices = get_fan_devices()
 
     clear_screen()
     print_logo()
@@ -111,6 +117,17 @@ def view_devices():
         print("group: " + pin['group'])
 
     print()
+
+    print("------------------------")
+    print("Fan Devices:")
+    for fan in fan_devices :
+        print("------------------------")
+        print("name: " + fan['name'])
+        print("num: " + str(fan['num']))
+        print("url: " + str(fan['url']))
+        print("speed: " + fan['speed'])
+
+    print()
     input("press any key to return")
     main_menu()
 
@@ -124,6 +141,8 @@ def view_commands():
         print(' DEVICES '.center(120, '*'))
         hue_lights = get_hue_color_devices()
         gpio_pins = get_pin_devices()
+        fan_devices = get_fan_devices()
+
         for hue in hue_lights:
             print("(hue) | ", end="")
             print("name: %s | " % hue['name'], end="")
@@ -140,7 +159,15 @@ def view_commands():
             print("name: %s | " % pin['name'], end="")
             print("on: %d | " % pin['on'], end="")
             print("id: %d | " % pin['num'], end="")
-            print("group: %s " % hue['group'])
+            print("group: %s " % pin['group'])
+
+        print()
+        for fan in fan_devices:
+            print("(fan) | ", end="")
+            print("name: %s | " % fan['name'], end="")
+            print("num: %d | " % fan['num'], end="")
+            print("url: %s | " % fan['url'], end="")
+            print("speed: %d " % fan['speed'])
 
         print()
 
