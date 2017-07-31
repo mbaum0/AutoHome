@@ -67,6 +67,7 @@ def init_devices():
 
 @app.route('/')
 def home():
+    # check if the server is running
     return HOME_MESSAGE
 
 
@@ -74,6 +75,11 @@ def home():
 
 @app.route('/pin/<int:num>', methods=['PUT'])
 def pin_set(num):
+    """
+    Alter the state of a GPIO pin 
+    :param num: pin number
+    :return: json of the pins new state
+    """
     logger.debug("GOT REQUEST FOR GPIO PIN %d" % num)
     global PIN_DEVICES
 
@@ -86,23 +92,28 @@ def pin_set(num):
     if 'on' in request.json and type(request.json['on']) is not int:
         abort(404)
 
+    pin = pins[0]
+
     # check if all keys in json PUT are valid
     for key in request.json:
-        if key not in pins[0].__dict__:
+        if key not in pin.__dict__:
             abort(404)
 
     data = request.get_json()
     status = data['on']
     if status == 0:
-        pins[0].turn_off()
+        pin.turn_off()
     else:
-        pins[0].turn_on()
+        pin.turn_on()
 
-    return json.dumps(pins[0].__dict__)
+    return json.dumps(pin.__dict__)
 
 
 @app.route('/pin', methods=['GET'])
 def pin_get():
+    """
+    :return: json list of all registered GPIO devices
+    """
     logger.debug("GET REQUEST FOR GPIO PIN DEVICES")
     global PIN_DEVICES
 
@@ -111,6 +122,12 @@ def pin_get():
 
 @app.route('/pin/group/<string:group>', methods=['PUT'])
 def pin_group_set(group):
+    """
+    set the state of multiple pins which share a group
+    :param group: name of the group
+    :return: json array of the new states of the pins 
+                in this group
+    """
     logger.debug("GOT REQUEST FOR GPIO PIN GROUP %s" % group)
     global PIN_DEVICES
 
@@ -144,6 +161,11 @@ def pin_group_set(group):
 # HUE COLOR DEVICES
 @app.route('/hue/<int:num>', methods=['PUT'])
 def hue_color_set(num):
+    """
+    set the status of a hue color light 
+    :param num: number id of the hue light
+    :return: json string of objects' new state
+    """
     logger.debug("GOT REQUEST FOR HUE COLOR LIGHT %d" % num)
     global HUE_COLOR_DEVICES
     global HUE_VALID_COMMANDS
@@ -172,27 +194,29 @@ def hue_color_set(num):
         if key not in HUE_VALID_COMMANDS:
             abort(404)
 
+    light = lights[0]
+
     data = request.get_json()
     if 'on' in request.json:
         if data['on'] == 1:
-            lights[0].turn_on()
+            light.turn_on()
         else:
-            lights[0].turn_off()
+            light.turn_off()
 
     if 'brightness' in request.json:
         bright = data['brightness']
-        lights[0].set_brightness(bright)
+        light.set_brightness(bright)
     if 'x' in request.json:
         x = data['x']
-        y = lights[0].y
-        lights[0].set_color(x, y)
+        y = lights.y
+        light[0].set_color(x, y)
     if 'y' in request.json:
         y = data['y']
-        x = lights[0].x
-        lights[0].set_color(x, y)
+        x = lights.x
+        light.set_color(x, y)
     if 'saturation' in request.json:
         sat = data['saturation']
-        lights[0].set_saturation(sat)
+        light.set_saturation(sat)
 
     if 'color' in request.json:
         color = data['color']
@@ -200,13 +224,17 @@ def hue_color_set(num):
         if color_dict is None:
             return abort(404)
         x, y = color_dict
-        lights[0].set_color(x, y)
+        light.set_color(x, y)
 
     return json.dumps(lights[0].__dict__)
 
 
 @app.route('/hue', methods=['GET'])
 def hue_get():
+    """
+    :return: json list of of all the registered
+                hue color lights
+    """
     logger.debug("GET REQUEST FOR HUE COLOR LIGHTS")
     global HUE_COLOR_DEVICES
     return json.dumps([light.__dict__ for light in HUE_COLOR_DEVICES])
@@ -267,6 +295,11 @@ def hue_color_group_set(group):
 
 @app.route('/fan/<int:num>', methods=['PUT'])
 def fan_speed_set(num):
+    """
+    set the status of a fan device
+    :param num: id of the device
+    :return: json string of the fan's new status
+    """
     logger.debug("GOT REQUEST FOR FAN SPEED: %d" % num)
 
     global FAN_DEVICES
@@ -280,16 +313,22 @@ def fan_speed_set(num):
     if 'speed' in request.json and type(request.json['speed']) is not int:
         abort(404)
 
+    fan = fans[0]
+
     data = request.get_json()
     if 'speed' in request.json:
             speed = data['speed']
-            fans[0].set_speed(speed)
+            fan.set_speed(speed)
 
-    return json.dumps(fans[0].__dict__)
+    return json.dumps(fan.__dict__)
 
 
 @app.route('/fan', methods=['GET'])
 def fan_get():
+    """
+    :return: json representation of all registered
+                fan devices
+    """
     logger.debug("GET REQUEST FOR FAN DEVICES")
     global FAN_DEVICES
     return json.dumps([fan.__dict__ for fan in FAN_DEVICES])
@@ -297,6 +336,9 @@ def fan_get():
 
 @app.route('/hue/colors', methods=['GET'])
 def hue_colors_get():
+    """
+    :return: json string of all preset colors 
+    """
     logger.debug("GOT REQUEST FOR HUE COLORS")
 
     hue_colors_dict = get_hue_colors()
