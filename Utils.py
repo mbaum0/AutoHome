@@ -15,7 +15,7 @@ import os
 
 # import RPi.GPIO as GPIO
 from devices.ColorLight import ColorLight
-
+from devices.ThreeSpeedFan import ThreeSpeedFan
 from devices.Pin import Pin
 
 # configurations
@@ -101,6 +101,27 @@ def get_hue_color_db_devices():
         light_objs.append(ColorLight(dev[1], dev[0], dev[4], dev[5], dev[3], dev[2], dev[6], dev[7]))
 
     return light_objs
+
+
+def get_fan_devices():
+    """
+    retrieves a list of fan devices that are currently configured
+    in the database
+    :return: list of fan devices
+    """
+
+    fan_get_devices = "SELECT * FROM fans"
+    connection = sqlite3.connect(DATABASE_PATH)
+    cursor = connection.cursor()
+
+    cursor.execute(fan_get_devices)
+    connection.commit()
+    fan_devices = cursor.fetchall()
+    fan_objs = []
+
+    for fan in fan_devices:
+        fan_objs.append(ThreeSpeedFan(fan[1], fan[0], fan[2], fan[3]))
+    return fan_objs
 
 
 def convert_rgb_to_xy(red, green, blue):

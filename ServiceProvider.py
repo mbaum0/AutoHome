@@ -34,8 +34,9 @@ logger.addHandler(screen_handler)
 HOME_MESSAGE = "It works!"
 PIN_DEVICES = []
 HUE_COLOR_DEVICES = []
+FAN_DEVICES = []
 HUE_VALID_COMMANDS = ['on', 'saturation', 'brightness', 'color', 'x', 'y']
-HOST_URL = "192.168.0.75"
+HOST_URL = "192.168.0.23"
 
 """
 ************************* INITIALIZATION *************************
@@ -53,6 +54,10 @@ def init_devices():
     logger.debug("LOADING HUE COLOR DEVICES FROM DATABASE")
     global HUE_COLOR_DEVICES
     HUE_COLOR_DEVICES = get_hue_color_db_devices()
+
+    logger.debug("LOADING FAN DEVICES FROM DATABASE")
+    global FAN_DEVICES
+    FAN_DEVICES = get_fan_devices()
 
 
 """
@@ -256,6 +261,26 @@ def hue_color_group_set(group):
             light.set_saturation(sat)
 
     return json.dumps([light.__dict__ for light in lights])
+
+
+# HTTP Service Devices
+
+@app.route('/fan/<int:num>/speed/<int:speed>', methods=['PUT'])
+def fan_speed_set(num, speed):
+    logger.debug("GOT REQUEST FOR FAN SPEED: %d" % num)
+
+    global FAN_DEVICES
+
+    fans = [fan for fan in FAN_DEVICES if fan.num == num]
+
+    if len(fans) == 0:
+        abort(404)
+
+    fan = fans[0]
+
+    fan.set_speed(speed)
+
+    return json.dumps(fan.__dict__)
 
 
 @app.route('/hue/colors', methods=['GET'])
