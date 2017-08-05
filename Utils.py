@@ -13,7 +13,7 @@ from sqlite3 import OperationalError
 import csv
 import os
 
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 from devices.ColorLight import ColorLight
 from devices.ThreeSpeedFan import ThreeSpeedFan
 from devices.Pin import Pin
@@ -33,8 +33,8 @@ def gpio_init():
     """
     initializes the gpio header on a raspberry pi
     """
-    # GPIO.setmode(GPIO.BCM)
-    # GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
 
 
 def db_init():

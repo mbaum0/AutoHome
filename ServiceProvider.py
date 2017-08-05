@@ -35,7 +35,7 @@ HOME_MESSAGE = "It works!"
 PIN_DEVICES = []
 HUE_COLOR_DEVICES = []
 FAN_DEVICES = []
-HUE_VALID_COMMANDS = ['on', 'saturation', 'brightness', 'color', 'x', 'y']
+HUE_VALID_COMMANDS = ['on', 'saturation', 'sat', 'brightness', 'bri', 'color', 'x', 'y']
 HOST_URL = "192.168.0.23"
 
 """
@@ -264,7 +264,7 @@ def hue_color_group_set(group):
 
     # check if all keys in json PUT are valid
     for key in request.json:
-        if key not in lights[0].__dict__:
+        if key not in HUE_VALID_COMMANDS:
             abort(404)
 
     data = request.get_json()
