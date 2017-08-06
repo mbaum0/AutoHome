@@ -13,10 +13,12 @@ from flask import abort
 import sys
 from flask import request
 from Utils import *
+from flask_cors import CORS
 import os
 
 # configurations
 app = Flask(__name__)
+CORS(app)
 
 LOG_FILENAME = "am.log"
 formatter = logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(message)s',
