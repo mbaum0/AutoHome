@@ -12,13 +12,13 @@ DELETE FROM hue_colors;
 DELETE FROM pins;
 DELETE FROM fans;
 
-INSERT INTO pins("id", "name", "on", "group") VALUES (27, "michael_lamp", 0, "michael_room");
+INSERT INTO pins("id", "name", "on", "group") VALUES (27, "Desk Lamp", 0, "michael_room");
 
 INSERT INTO hue_colors("id", "name", "on", "brightness", "x", "y",
-"saturation", "group") VALUES (20, "michael_main_0", 0, 0, 0, 0, 0, "michael_room");
+"saturation", "group") VALUES (20, "Bedroom Light 1", 0, 0, 0, 0, 0, "michael_room");
 
 INSERT INTO hue_colors("id", "name", "on", "brightness", "x", "y",
-"saturation", "group") VALUES (22, "michael_main_1", 0, 0, 0, 0, 0, "michael_room");
+"saturation", "group") VALUES (22, "Bedroom Light 2", 0, 0, 0, 0, 0, "michael_room");
 
-INSERT INTO fans("id", "name", "url", "speed") VALUES (0, "room_fan", "http://192.168.0.15/fan/speed/%d", 0);
+INSERT INTO fans("id", "name", "url", "speed") VALUES (0, "Bedroom Fan", "http://192.168.0.15/fan/speed/%d", 0);
 
